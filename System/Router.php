@@ -1,5 +1,7 @@
 <?php
 
+namespace System;
+
 use System\Contracts\IRouter;
 use System\Exceptions\Exc404;
 
@@ -14,26 +16,28 @@ class Router implements IRouter
         $this->baseShift = strlen($this->baseUrl);
     }
 
-    public function addRoute(string $url, string $controllerName, string $controllerMethod = 'index', array $params = []): void
+    public function addRoute(string $url, string $controllerName, string $controllerMethod = 'index', array $paramsMap = []): void
     {
         $this->routes[] = [
             'path' => $url,
             'controller' => $controllerName,
             'method' => $controllerMethod,
-            'params' => $params
+            'paramsMap' => $paramsMap
         ];
     }
 
     public function resolvePath(string $url): array
     {
         $relativeUrl = substr($url, $this->baseShift);
+
         $route = $this->findPath($relativeUrl);
-        $controller = new $route['c']();
-        $controller->setEnviroment($route['params'], $_GET, $_POST, $_SERVER);
+
+        $controller = new $route['controller']();
+        $controller->setEnv($route['params'], $_GET, $_POST, $_SERVER);
 
         return [
             'controller' => $controller,
-            'method' => $route['m']
+            'method' => $route['method']
         ];
     }
 
