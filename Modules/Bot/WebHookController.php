@@ -2,6 +2,7 @@
 
 namespace Modules\Bot;
 
+use Modules\Contracts\WebhookHandlerInterface;
 use System\BaseController;
 
 class WebHookController extends BaseController
@@ -10,8 +11,7 @@ class WebHookController extends BaseController
     {
     }
 
-    public function sentry(){
-        var_dump('sentry');
+    public function sentry(WebhookHandlerInterface $handler){
     }
 
 }

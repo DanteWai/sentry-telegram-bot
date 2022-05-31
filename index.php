@@ -8,9 +8,13 @@ use System\Router;
 
 
 try {
+    $builder = new DI\ContainerBuilder();
+    $builder->addDefinitions('Config/di.php');
+    $container = $builder->build();
+
     $modules = new ModulesDispatcher();
     $modules->add(new BotModule());
-    $router = new Router();
+    $router = new Router('', $container);
 
     $modules->registerRoutes($router);
 

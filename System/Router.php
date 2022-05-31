@@ -4,16 +4,19 @@ namespace System;
 
 use System\Contracts\IRouter;
 use System\Exceptions\Exc404;
+use DI\Container;
 
 class Router implements IRouter
 {
     protected string $baseUrl;
     protected int $baseShift;
     protected array $routes = [];
+    protected Container $container;
 
-    public function __construct(string $baseUrl = ''){
+    public function __construct(string $baseUrl, Container $container){
         $this->baseUrl = $baseUrl;
         $this->baseShift = strlen($this->baseUrl);
+        $this->container = $container;
     }
 
     public function addRoute(string $url, string $controllerName, string $controllerMethod = 'index', array $paramsMap = []): void
@@ -32,7 +35,7 @@ class Router implements IRouter
 
         $route = $this->findPath($relativeUrl);
 
-        $controller = new $route['controller']();
+        $controller = $this->container->get($route['controller']);
         $controller->setEnv($route['params'], $_GET, $_POST, $_SERVER);
 
         return [
