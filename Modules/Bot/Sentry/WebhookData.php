@@ -2,9 +2,10 @@
 
 namespace Modules\Bot\Sentry;
 
-use Modules\Contracts\WebhookDataDtoInterface;
 
-class WebhookData implements WebhookDataDtoInterface
+use System\DTO;
+
+class WebhookData extends DTO
 {
 
 }
