@@ -1,10 +1,19 @@
 <?php
 
-function dd($var){
-    echo '<pre>' . var_export($var, true) . '</pre>';
+function dd(){
+    $args = func_get_args();
+
+    foreach ($args as $item){
+        echo '<pre>' . var_export($item, true) . '</pre>';
+    }
+
     die();
 }
 
-function dump($var){
-    echo '<pre>' . var_export($var, true) . '</pre>';
+function dump(){
+    $args = func_get_args();
+
+    foreach ($args as $item){
+        echo '<pre>' . var_export($item, true) . '</pre>';
+    }
 }
