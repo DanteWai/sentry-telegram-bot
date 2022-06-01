@@ -11,6 +11,8 @@ interface UserRepositoryInterface
     /** @return UserDto[] */
     public function getUsers(): array;
 
+    public function createUser(array $attributes);
+
     public function updateUser(int $id, array $attributes);
 
     public function deleteUser(int $id);
