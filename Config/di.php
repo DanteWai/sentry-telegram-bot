@@ -1,5 +1,6 @@
 <?php
+
 return [
-    \Modules\Bot\WebHookController::class => DI\create()
-        ->method('sentry', DI\create(\Modules\Bot\Sentry\WebhookHandler::class)),
+    \Modules\Bot\WebHookController::class => DI\autowire()
+        ->constructor(DI\autowire(\Modules\Bot\Sentry\WebhookHandler::class)),
 ];

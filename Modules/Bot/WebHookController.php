@@ -2,16 +2,23 @@
 
 namespace Modules\Bot;
 
-use Modules\Contracts\WebhookHandlerInterface;
+use Modules\Bot\Contracts\WebhookHandlerInterface;
 use System\BaseController;
 
 class WebHookController extends BaseController
 {
-    public function __construct()
+    private WebhookHandlerInterface $sentryHandler;
+
+    public function __construct(
+        WebhookHandlerInterface $sentryHandler
+    )
     {
+        $this->sentryHandler = $sentryHandler;
     }
 
-    public function sentry(WebhookHandlerInterface $handler){
+    public function sentry()
+    {
+        $this->sentryHandler->parseData($this->env['post']);
     }
 
 }
