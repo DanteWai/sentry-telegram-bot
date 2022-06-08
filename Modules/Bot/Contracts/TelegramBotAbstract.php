@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Contracts;
+namespace Modules\Bot\Contracts;
 
 use Modules\Bot\Sentry\WebhookData;
 

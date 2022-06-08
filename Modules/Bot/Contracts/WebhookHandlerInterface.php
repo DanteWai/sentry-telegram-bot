@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Contracts;
+namespace Modules\Bot\Contracts;
 
 use System\DTO;
 

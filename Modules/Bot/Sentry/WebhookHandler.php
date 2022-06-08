@@ -2,7 +2,8 @@
 
 namespace Modules\Bot\Sentry;
 
-use Modules\Contracts\WebhookHandlerInterface;
+
+use Modules\Bot\Contracts\WebhookHandlerInterface;
 
 class WebhookHandler implements WebhookHandlerInterface
 {
