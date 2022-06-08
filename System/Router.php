@@ -2,6 +2,7 @@
 
 namespace System;
 
+use Modules\Bot\WebHookController;
 use System\Contracts\IRouter;
 use System\Exceptions\Exc404;
 use DI\Container;
@@ -35,8 +36,14 @@ class Router implements IRouter
 
         $route = $this->findPath($relativeUrl);
 
-        $controller = $this->container->get($route['controller']);
-        $controller->setEnv($route['params'], $_GET, $_POST, $_SERVER);
+        $raw_post = file_get_contents('php://input');
+        $post = isJson($raw_post) ? json_decode($raw_post, true) : $_POST;
+
+
+        $controller = $this->container->get(WebHookController::class);
+
+        $controller->setEnv($route['params'], $_GET, $post, getallheaders());
+
 
         return [
             'controller' => $controller,
