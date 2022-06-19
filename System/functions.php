@@ -25,3 +25,12 @@ function isJson($string): bool
     json_decode($string);
     return json_last_error() === JSON_ERROR_NONE;
 }
+
+function appLog(string $string){
+    $dir = "logs";
+    if(!is_dir($dir)) {
+        mkdir($dir, 0777, true);
+    }
+
+    file_put_contents('logs/log'. date('d.m.Y'), $string . "\n", FILE_APPEND);
+}
