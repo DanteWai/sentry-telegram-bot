@@ -42,9 +42,25 @@ class SentryApi
     /**
      * @throws GuzzleException
      */
-    public function getListAnOrganizationUsers(): array
+    public function getListAnOrganizationUsers(int $project_id = null): array
     {
-        $response = $this->client->get("organizations/{$this->organization_slug}/users/");
+        $path = "organizations/{$this->organization_slug}/users/";
+
+        if($project_id){
+            $path .= "?project={$project_id}";
+        }
+
+        $response = $this->client->get($path);
+
+        return $this->responseHandler($response);
+    }
+
+    /**
+     * @throws GuzzleException
+     */
+    public function getProject($project_slug): array
+    {
+        $response = $this->client->get("projects/{$this->organization_slug}/{$project_slug}/");
 
         return $this->responseHandler($response);
     }

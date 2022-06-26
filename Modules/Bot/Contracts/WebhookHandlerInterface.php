@@ -6,5 +6,5 @@ use System\DTO;
 
 interface WebhookHandlerInterface
 {
-    public function parseData(array $data): DTO;
+    public function handle(array $data);
 }

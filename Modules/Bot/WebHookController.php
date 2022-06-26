@@ -4,6 +4,7 @@ namespace Modules\Bot;
 
 use Modules\Bot\Contracts\TelegramMessageHandlerInterface;
 use Modules\Bot\Contracts\WebhookHandlerInterface;
+use Modules\Bot\Sentry\WebhookData;
 use System\BaseController;
 
 class WebHookController extends BaseController
@@ -27,9 +28,7 @@ class WebHookController extends BaseController
      */
     public function sentry()
     {
-        $this->sentryHandler->parseData($this->env['post']);
-        appLog(json_encode($this->env['post']));
-        appLog(json_encode($this->env['headers']));
+        $this->sentryHandler->handle($this->env['post']);
         http_response_code(200);
     }
 
@@ -39,8 +38,6 @@ class WebHookController extends BaseController
      */
     public function telegram(){
         $this->telegramMessageHandler->handle($this->env['post']);
-        appLog(json_encode($this->env['post'], JSON_PRETTY_PRINT), 'telegram');
         http_response_code(200);
     }
-
 }

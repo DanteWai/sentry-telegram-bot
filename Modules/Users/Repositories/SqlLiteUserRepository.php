@@ -20,17 +20,17 @@ class SqlLiteUserRepository implements UserRepositoryInterface
 
     public function getUser(int $telegram_id): ?UserDto
     {
-        [$user] = $this->client->select(['*'], $this->table, "telegram_id = {$telegram_id} limit 1");
+        [$user] = $this->client->select(['*'], $this->table, "where telegram_id = {$telegram_id} limit 1");
         return $user ? new UserDto($user) : $user;
     }
 
     /**
      * @return array|UserDto[]
      */
-    public function getUsers(): array
+    public function getUsers($condition = ''): array
     {
         $users = [];
-        $data = $this->client->select(['*'], $this->table);
+        $data = $this->client->select(['*'], $this->table, $condition);
 
         foreach ($data as $user) {
             $users[] = new UserDto($user);
@@ -51,12 +51,12 @@ class SqlLiteUserRepository implements UserRepositoryInterface
 
     public function updateUser(int $telegram_id, array $attributes): UserDto
     {
-        $this->client->update($this->table, $attributes, "telegram_id = {$telegram_id}");
+        $this->client->update($this->table, $attributes, "where telegram_id = {$telegram_id}");
         return $this->getUser($telegram_id);
     }
 
     public function deleteUser(int $telegram_id): void
     {
-        $this->client->delete($this->table, "telegram_id = {$telegram_id}");
+        $this->client->delete($this->table, "where telegram_id = {$telegram_id}");
     }
 }

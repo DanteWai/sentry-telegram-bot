@@ -21,7 +21,7 @@ class DatabaseSQLLite extends Database
         $sql = "select {$columns} from {$table}";
 
         if($condition){
-            $sql .= " where {$condition}";
+            $sql .= " {$condition}";
         }
 
         $res = $this->client->query($sql);
@@ -60,7 +60,7 @@ class DatabaseSQLLite extends Database
         }
 
         if ($condition) {
-            $sql .= " where {$condition}";
+            $sql .= " {$condition}";
         }
 
         $statement = $this->client->prepare($sql);
@@ -77,7 +77,7 @@ class DatabaseSQLLite extends Database
         $sql = "delete from {$table}";
 
         if ($condition) {
-            $sql .= " where {$condition}";
+            $sql .= " {$condition}";
         }
 
         $this->client->query($sql);
