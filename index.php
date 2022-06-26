@@ -17,14 +17,15 @@ try {
     $router = new Router('', $container);
 
     $modules->registerRoutes($router);
-
     $uri = $_SERVER['REQUEST_URI'];
     $activeRoute = $router->resolvePath($uri);
     $activeRoute['controller']->{$activeRoute['method']}();
 }
 catch(Exc404 $e){
+    appLog($e->getMessage());
     echo '404';
 }
 catch(Throwable $e){
+    appLog($e->getMessage());
     echo 'nice show error - ' . $e->getMessage();
 }

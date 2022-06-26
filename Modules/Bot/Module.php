@@ -7,6 +7,9 @@ use System\Contracts\IRouter;
 
 class Module implements IModule{
     public function registerRoutes(IRouter $router) : void {
-        $router->addRoute("/^\/sentry-webhook$/", WebHookController::class, 'sentry');
+        $router->addRoute("/^\/api\/sentry\/webhook$/", WebHookController::class, 'sentry');
+        $router->addRoute("/^\/api\/sentry\/alert-rule-action$/", WebHookController::class, 'sentry');
+
+        $router->addRoute("/^\/api\/telegram\/webhook$/", WebHookController::class, 'telegram');
     }
 }

@@ -10,8 +10,5 @@ abstract class TelegramBotAbstract
 
     abstract public function sendWebhookNotify($chat_id, WebhookData $webhookData);
 
-    public function sendMessage($chat_id, $message): void
-    {
-
-    }
+    abstract public function sendMessage($chat_id, string $message, array $buttons = []): array;
 }

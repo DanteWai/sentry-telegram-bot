@@ -1,0 +1,30 @@
+{
+  "update_id": 701380409,
+  "message": {
+    "message_id": 16,
+    "from": {
+      "id": 395337973,
+      "is_bot": false,
+      "first_name": "dmitry",
+      "last_name": "safronov",
+      "username": "e5tUykHE4p_WR",
+      "language_code": "ru"
+    },
+    "chat": {
+      "id": 395337973,
+      "first_name": "dmitry",
+      "last_name": "safronov",
+      "username": "e5tUykHE4p_WR",
+      "type": "private"
+    },
+    "date": 1655640201,
+    "text": "\/test",
+    "entities": [
+      {
+        "offset": 0,
+        "length": 5,
+        "type": "bot_command"
+      }
+    ]
+  }
+}
