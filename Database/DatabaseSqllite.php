@@ -15,21 +15,71 @@ class DatabaseSQLLite extends Database
 
     public function select(array $columns, string $table, string $condition = '')
     {
-        // TODO: Implement select() method.
+        $elements = [];
+        $columns = implode(',',$columns);
+
+        $sql = "select {$columns} from {$table}";
+
+        if($condition){
+            $sql .= " where {$condition}";
+        }
+
+        $res = $this->client->query($sql);
+
+        while ($row = $res->fetchArray(SQLITE3_ASSOC)) {
+            $elements[] =  $row;
+        }
+
+        return $elements;
     }
 
-    public function insert(string $table, array $attributes)
+    public function insert(string $table, array $attributes): int
     {
-        // TODO: Implement insert() method.
+        $keys = array_keys($attributes);
+        $columns = implode(',', $keys);
+        $binding_values = implode(',', array_map(fn($item) => ':' . $item, $keys));
+
+        $sql = "insert into {$table} ({$columns}) VALUES ({$binding_values})";
+
+        $statement = $this->client->prepare($sql);
+
+        foreach ($attributes as $name => $value) {
+            $statement->bindValue(":{$name}", $value);
+        }
+
+        $statement->execute();
+        return $this->client->lastInsertRowID();
     }
 
     public function update(string $table, array $attributes, string $condition = '')
     {
-        // TODO: Implement update() method.
+        $sql = "UPDATE {$table} SET";
+
+        foreach ($attributes as $name => $value){
+            $sql.= " {$name} = :{$name}";
+        }
+
+        if ($condition) {
+            $sql .= " where {$condition}";
+        }
+
+        $statement = $this->client->prepare($sql);
+
+        foreach ($attributes as $name => $value) {
+            $statement->bindValue(":{$name}", $value);
+        }
+
+        $statement->execute();
     }
 
-    public function delete(string $table, string $condition = '')
+    public function delete(string $table, string $condition = ''): void
     {
-        // TODO: Implement delete() method.
+        $sql = "delete from {$table}";
+
+        if ($condition) {
+            $sql .= " where {$condition}";
+        }
+
+        $this->client->query($sql);
     }
 }

@@ -3,9 +3,10 @@
 
 namespace Modules\Users\Repositories;
 
+use Modules\Users\Contracts\UserCodesRepository;
 use Predis\Client;
 
-class RedisUserCodesRepository
+class RedisUserCodesRepository implements UserCodesRepository
 {
     const CACHE_TIME = 60 * 60;
 
@@ -17,17 +18,20 @@ class RedisUserCodesRepository
         $this->redis = new Client();
         $this->prefix = 'codes:';
     }
-    
-    public function setCode(int $user_id, string $code, string $email){
-        $this->redis->setex($this->prefix.$user_id, self::CACHE_TIME , $code.' '.$email);
+
+    public function setCode(int $user_id, string $code, string $email, string $sentry_id): void
+    {
+        $this->redis->setex($this->prefix . $user_id, self::CACHE_TIME, $code . ' ' . $email . ' ' . $sentry_id);
     }
 
-    public function getCode($user_id){
-        $value = $this->redis->get($this->prefix.$user_id);
-        if(!$value) return $value;
+    public function getCode($user_id): ?array
+    {
+        $value = $this->redis->get($this->prefix . $user_id);
 
-        [$code, $email] = explode(' ', $value);
+        if (is_null($value)) return null;
 
-        return compact('code', 'email');
+        [$code, $email, $sentry_id] = explode(' ', $value);
+
+        return compact('code', 'email', 'sentry_id');
     }
 }

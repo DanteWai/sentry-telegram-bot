@@ -9,6 +9,7 @@ use System\BaseController;
 class WebHookController extends BaseController
 {
     private WebhookHandlerInterface $sentryHandler;
+    private TelegramMessageHandlerInterface $telegramMessageHandler;
 
     public function __construct(
         WebhookHandlerInterface $sentryHandler,

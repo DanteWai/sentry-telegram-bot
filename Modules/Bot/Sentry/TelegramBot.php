@@ -45,14 +45,19 @@ class TelegramBot extends TelegramBotAbstract
      * @return array
      * @throws GuzzleException
      */
-    public function sendMessage($chat_id, string $message, array $buttons = []): array
+    public function sendMessage(
+        $chat_id,
+        string $message,
+        array $buttons = [],
+    ): array
+
     {
         $data = [
             'chat_id' => $chat_id,
             'text' => $message,
         ];
 
-        if($buttons){
+        if (!empty($buttons)) {
             $data['reply_markup'] = $buttons;
         }
 
@@ -63,7 +68,8 @@ class TelegramBot extends TelegramBotAbstract
         return $this->responseHandler($response);
     }
 
-    public function sendChatAction($chat_id, string $action = 'typing'): array
+    public
+    function sendChatAction($chat_id, string $action = 'typing'): array
     {
 
         $response = $this->client->post($this->url . __FUNCTION__, [
@@ -83,7 +89,8 @@ class TelegramBot extends TelegramBotAbstract
      * @return array
      * @throws GuzzleException
      */
-    public function getUpdates(int $offset = null, int $limit = 100): array
+    public
+    function getUpdates(int $offset = null, int $limit = 100): array
     {
         $response = $this->client->get($this->url . __FUNCTION__, [
             'params' => [
@@ -98,7 +105,8 @@ class TelegramBot extends TelegramBotAbstract
     /**
      * @throws GuzzleException
      */
-    public function setWebhook($url): array
+    public
+    function setWebhook($url): array
     {
         $response = $this->client->post($this->url . __FUNCTION__, [
             'json' => [
@@ -112,7 +120,8 @@ class TelegramBot extends TelegramBotAbstract
     /**
      * @throws GuzzleException
      */
-    public function getWebhookInfo(): array
+    public
+    function getWebhookInfo(): array
     {
         $response = $this->client->get($this->url . __FUNCTION__);
 
@@ -122,19 +131,43 @@ class TelegramBot extends TelegramBotAbstract
     /**
      * @throws GuzzleException
      */
-    public function deleteWebhook(): array
+    public
+    function deleteWebhook(): array
     {
         $response = $this->client->post($this->url . __FUNCTION__);
 
         return $this->responseHandler($response);
     }
 
-    protected function responseHandler(ResponseInterface $response): array{
+    /**
+     * @param $callback_query_id
+     * @return array
+     * @throws GuzzleException
+     */
+    public
+    function answerCallbackQuery($callback_query_id): array
+    {
+        $response = $this->client->post($this->url . __FUNCTION__, [
+            'json' => compact('callback_query_id')
+        ]);
+
+        return $this->responseHandler($response);
+    }
+
+    public
+    function setMyCommands()
+    {
+
+    }
+
+    protected
+    function responseHandler(ResponseInterface $response): array
+    {
         $response = json_decode($response->getBody(), true);
 
-        if(isset($response['ok']) && $response['ok']){
-            if (is_array($response['result'])){
-                return  $response['result'];
+        if (isset($response['ok']) && $response['ok']) {
+            if (is_array($response['result'])) {
+                return $response['result'];
             }
 
             return $response;
@@ -143,7 +176,9 @@ class TelegramBot extends TelegramBotAbstract
         $this->wrongAnswer();
     }
 
-    protected function wrongAnswer(){
+    protected
+    function wrongAnswer()
+    {
         throw new \Error('wrong answer');
     }
 }

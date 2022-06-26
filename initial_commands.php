@@ -6,4 +6,5 @@ $bot = new \Modules\Bot\Sentry\TelegramBot(
     $_ENV['TELEGRAM_SENTRY_BOT_TOKEN']
 );
 
+$bot->deleteWebhook();
 $bot->setWebhook($_ENV['TELEGRAM_WEBHOOK_URL']);

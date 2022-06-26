@@ -1,19 +1,19 @@
 <?php
 
-namespace Modules\User\Contracts;
+namespace Modules\Users\Contracts;
 
-use Modules\User\UserDto;
+use Modules\Users\UserDto;
 
 interface UserRepositoryInterface
 {
-    public function getUser(int $id):UserDto;
+    public function getUser(int $telegram_id): ?UserDto;
 
     /** @return UserDto[] */
     public function getUsers(): array;
 
-    public function createUser(array $attributes);
+    public function createUser(int $telegram_id, int $sentry_id, string $email): UserDto;
 
-    public function updateUser(int $id, array $attributes);
+    public function updateUser(int $telegram_id, array $attributes):UserDto;
 
-    public function deleteUser(int $id);
+    public function deleteUser(int $telegram_id): void;
 }

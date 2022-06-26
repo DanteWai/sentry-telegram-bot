@@ -2,7 +2,7 @@
 
 namespace Modules\User;
 
-use Modules\User\Contracts\UserRepositoryInterface;
+use Modules\Users\Contracts\UserRepositoryInterface;
 use System\Contracts\IModule;
 use System\Contracts\IRouter;
 

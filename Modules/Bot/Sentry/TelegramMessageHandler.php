@@ -2,27 +2,42 @@
 
 namespace Modules\Bot\Sentry;
 
+use Database\DatabaseSQLLite;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Modules\Bot\Contracts\TelegramMessageHandlerInterface;
+use Modules\Bot\Sentry\TelegramMessageHandlers\CallbackHandler;
+use Modules\Bot\Sentry\TelegramMessageHandlers\MessageHandler;
+use Modules\Users\Contracts\UserRepositoryInterface;
 use Modules\Users\Repositories\RedisUserCodesRepository;
-use PHPMailer\PHPMailer\Exception;
-use Ramsey\Uuid\Uuid;
-use System\Mail;
+use Modules\Users\Repositories\SqlLiteUserRepository;
 
 class TelegramMessageHandler implements TelegramMessageHandlerInterface
 {
-    const EMAIL_MESSAGE = 'Введите Email (Должен совпадать с вашим Email в sentry)';
 
-    private TelegramBot $bot;
+
+    private TelegramBot $telegramApi;
     private SentryApi $sentryApi;
     private RedisUserCodesRepository $codesRepository;
+    private CallbackHandler $callbackHandler;
+    private MessageHandler $messageHandler;
+    private UserRepositoryInterface $usersRepository;
 
     public function __construct()
     {
-        $this->bot = new TelegramBot(new Client(), $_ENV['TELEGRAM_SENTRY_BOT_TOKEN']);
+        $this->telegramApi = new TelegramBot(new Client(), $_ENV['TELEGRAM_SENTRY_BOT_TOKEN']);
         $this->sentryApi = new SentryApi();
+
         $this->codesRepository = new RedisUserCodesRepository();
+        $this->usersRepository = new SqlLiteUserRepository(new DatabaseSQLLite($_ENV['DATABASE_NAME']));
+
+        $this->callbackHandler = new CallbackHandler($this->telegramApi);
+        $this->messageHandler = new MessageHandler(
+            $this->telegramApi,
+            $this->sentryApi,
+            $this->codesRepository,
+            $this->usersRepository
+        );
     }
 
     /**
@@ -30,87 +45,9 @@ class TelegramMessageHandler implements TelegramMessageHandlerInterface
      */
     public function handle(array $data){
         if(isset($data['message'])){
-            $this->messageHandler($data['message']);
+            $this->messageHandler->handle($data['message']);
         } elseif(isset($data['callback_query'])){
-            $this->callbackHandler($data['callback_query']);
+            $this->callbackHandler->handle($data['callback_query']);
         }
-    }
-
-    /**
-     * @throws GuzzleException
-     */
-    protected function messageHandler(array $data){
-        $chat_id = $data['chat']['id'];
-        $text = $data['text'];
-
-        if($text === '/start') {
-            $this->messageStartHandler($chat_id);
-        } elseif (isset($data['reply_to_message'])){
-            $this->replyToMessageHandler($data);
-        }
-    }
-
-    protected function replyToMessageHandler(array $data){
-        if($data['reply_to_message']){
-            $this->replyToEmailMessageHandler($data);
-        }
-    }
-
-    /**
-     * @throws Exception
-     * @throws GuzzleException
-     */
-    protected function replyToEmailMessageHandler(array $data){
-
-        $chat_id = $data['reply_to_message']['chat']['id'];
-
-        $email = $data['text'];
-        $users = $this->sentryApi->getListAnOrganizationUsers();
-        [$user] = array_filter($users, fn($user) => $user['email'] === $email);
-
-        if($user){
-            $code = Uuid::uuid4()->toString();
-            $message = 'Auth code: ' . $code;
-            $this->codesRepository->setCode($chat_id, $code, $email);
-            $mail = new Mail($email, $message, 'Auth code');
-            $mail->send();
-            $this->bot->sendMessage($chat_id, 'Введите код из сообщения', [
-                'force_reply' => true
-            ]);
-        } else {
-            $this->bot->sendMessage($chat_id, 'Авторизация не удалась');
-        }
-
-
-    }
-
-    /**
-     * @throws GuzzleException
-     */
-    protected function messageStartHandler($chat_id){
-        $button1 = [
-            'text' => 'Авторизация через Email',
-            'callback_data' => 'cb_email',
-        ];
-
-        $inline_keyboard = [[$button1]];
-        $buttons = ['inline_keyboard' => $inline_keyboard];
-
-        $this->bot->sendMessage($chat_id, 'Выберете способ подключения', $buttons);
-    }
-
-    protected function callbackHandler(array $data){
-        $chat_id = $data['message']['chat']['id'];
-        $text = $data['data'];
-
-        if($text === 'cb_email'){
-            $this->callbackEmailHandler($chat_id);
-        }
-    }
-
-    protected function callbackEmailHandler($chat_id){
-        $this->bot->sendMessage($chat_id, self::EMAIL_MESSAGE, [
-            'force_reply' => true
-        ]);
     }
 }

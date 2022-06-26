@@ -8,12 +8,12 @@ use Psr\Http\Message\ResponseInterface;
 
 class SentryApi
 {
-    /**
-     * @var mixed
-     */
+
     private $secret;
     private Client $client;
     private string $url;
+
+    private $organization_slug;
 
     public function __construct()
     {
@@ -44,7 +44,7 @@ class SentryApi
      */
     public function getListAnOrganizationUsers(): array
     {
-        $response = $this->client->get("organizations/dim-ur/users/");
+        $response = $this->client->get("organizations/{$this->organization_slug}/users/");
 
         return $this->responseHandler($response);
     }

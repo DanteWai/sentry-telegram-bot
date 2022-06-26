@@ -26,6 +26,6 @@ catch(Exc404 $e){
     echo '404';
 }
 catch(Throwable $e){
-    appLog($e->getMessage());
+    appLog($e->getMessage() . ' ' . $e->getLine() . ' ' . $e->getFile());
     echo 'nice show error - ' . $e->getMessage();
 }
