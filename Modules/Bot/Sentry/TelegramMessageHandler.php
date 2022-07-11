@@ -11,37 +11,27 @@ use Modules\Bot\Sentry\TelegramMessageHandlers\MessageHandler;
 use Modules\Users\Contracts\UserRepositoryInterface;
 use Modules\Users\Repositories\RedisUserCodesRepository;
 use Modules\Users\Repositories\SqlLiteUserRepository;
+use PHPMailer\PHPMailer\Exception;
 
 class TelegramMessageHandler implements TelegramMessageHandlerInterface
 {
 
 
-    private TelegramBot $telegramApi;
-    private SentryApi $sentryApi;
-    private RedisUserCodesRepository $codesRepository;
     private CallbackHandler $callbackHandler;
     private MessageHandler $messageHandler;
-    private UserRepositoryInterface $usersRepository;
 
-    public function __construct()
+    public function __construct(
+        CallbackHandler $callbackHandler,
+        MessageHandler $messageHandler
+    )
     {
-        $this->telegramApi = new TelegramBot(new Client(), $_ENV['TELEGRAM_SENTRY_BOT_TOKEN']);
-        $this->sentryApi = new SentryApi();
-
-        $this->codesRepository = new RedisUserCodesRepository();
-        $this->usersRepository = new SqlLiteUserRepository(new DatabaseSQLLite($_ENV['DATABASE_NAME']));
-
-        $this->callbackHandler = new CallbackHandler($this->telegramApi);
-        $this->messageHandler = new MessageHandler(
-            $this->telegramApi,
-            $this->sentryApi,
-            $this->codesRepository,
-            $this->usersRepository
-        );
+        $this->callbackHandler = $callbackHandler;
+        $this->messageHandler = $messageHandler;
     }
 
     /**
      * @throws GuzzleException
+     * @throws Exception
      */
     public function handle(array $data){
         if(isset($data['message'])){

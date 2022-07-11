@@ -2,15 +2,14 @@
 include_once('init.php');
 
 use Modules\Bot\Module as BotModule;
+use System\DIContainer;
 use System\Exceptions\Exc404;
 use System\ModulesDispatcher;
 use System\Router;
 
 
 try {
-    $builder = new DI\ContainerBuilder();
-    $builder->addDefinitions('Config/di.php');
-    $container = $builder->build();
+    $container = new DIContainer();
 
     $modules = new ModulesDispatcher();
     $modules->add(new BotModule());
@@ -25,7 +24,7 @@ catch(Exc404 $e){
     appLog($e->getMessage());
     echo '404';
 }
-catch(Throwable $e){
+catch(Throwable $e) {
     appLog($e->getMessage() . ' ' . $e->getLine() . ' ' . $e->getFile());
     echo 'nice show error - ' . $e->getMessage();
 }

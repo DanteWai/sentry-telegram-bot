@@ -12,9 +12,9 @@ class Router implements IRouter
     protected string $baseUrl;
     protected int $baseShift;
     protected array $routes = [];
-    protected Container $container;
+    protected DIContainer $container;
 
-    public function __construct(string $baseUrl, Container $container){
+    public function __construct(string $baseUrl, DIContainer $container){
         $this->baseUrl = $baseUrl;
         $this->baseShift = strlen($this->baseUrl);
         $this->container = $container;
@@ -40,7 +40,7 @@ class Router implements IRouter
         $post = isJson($raw_post) ? json_decode($raw_post, true) : $_POST;
 
 
-        $controller = $this->container->get(WebHookController::class);
+        $controller = $this->container->resolveClass(WebHookController::class);
 
         $controller->setEnv($route['params'], $_GET, $post, getallheaders());
 

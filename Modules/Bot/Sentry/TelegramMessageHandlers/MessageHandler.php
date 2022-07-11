@@ -22,9 +22,9 @@ class MessageHandler
     private UserRepositoryInterface $userRepository;
 
     public function __construct(
-        TelegramBot         $bot,
-        SentryApi           $sentryApi,
-        UserCodesRepository $userCodesRepository,
+        TelegramBot             $bot,
+        SentryApi               $sentryApi,
+        UserCodesRepository     $userCodesRepository,
         UserRepositoryInterface $userRepository
     )
     {
@@ -119,14 +119,15 @@ class MessageHandler
      * @return void
      * @throws GuzzleException
      */
-    protected function replyToInputCodeMessage(array $data){
+    protected function replyToInputCodeMessage(array $data)
+    {
         $message = $data['text'];
         $chat_id = $data['reply_to_message']['chat']['id'];
 
         $codeAndEmailAndSentryId = $this->userCodesRepository->getCode($chat_id);
 
-        if(is_array($codeAndEmailAndSentryId) && $codeAndEmailAndSentryId['code'] === $message){
-            $this->userRepository->createUser($chat_id,$codeAndEmailAndSentryId['sentry_id'], $codeAndEmailAndSentryId['email']);
+        if (is_array($codeAndEmailAndSentryId) && $codeAndEmailAndSentryId['code'] === $message) {
+            $this->userRepository->createUser($chat_id, $codeAndEmailAndSentryId['sentry_id'], $codeAndEmailAndSentryId['email']);
             $this->bot->sendMessage($chat_id, 'Вы успешно авторизованы');
         } else {
             $this->bot->sendMessage($chat_id, 'Введен некорректный код');

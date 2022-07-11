@@ -3,24 +3,32 @@
 namespace Modules\Bot\Sentry;
 
 
-use Database\DatabaseSQLLite;
-use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Modules\Bot\Contracts\WebhookHandlerInterface;
-use Modules\Users\Repositories\SqlLiteUserRepository;
+use Modules\Users\Contracts\UserRepositoryInterface;
 
 class WebhookHandler implements WebhookHandlerInterface
 {
     private SentryApi $sentryApi;
-    private SqlLiteUserRepository $userRepository;
+    private UserRepositoryInterface $userRepository;
     private TelegramBot $telegramApi;
 
-    public function __construct()
+    public function __construct(
+        SentryApi $sentryApi,
+        UserRepositoryInterface $userRepository,
+        TelegramBot $telegramBot
+    )
     {
-        $this->sentryApi = new SentryApi();
-        $this->userRepository = new SqlLiteUserRepository(new DatabaseSQLLite($_ENV['DATABASE_NAME']));
-        $this->telegramApi = new TelegramBot(new Client(), $_ENV['TELEGRAM_SENTRY_BOT_TOKEN']);
+        $this->sentryApi = $sentryApi;
+        $this->userRepository = $userRepository;
+        $this->telegramApi = $telegramBot;
     }
 
+    /**
+     * Парсим данные пришедшие из сентри и забираем необходимое
+     * @param array $data
+     * @return WebhookData
+     */
     public function parseData(array $data): WebhookData
     {
         $data = $data['data']['event'];
@@ -40,13 +48,20 @@ class WebhookHandler implements WebhookHandlerInterface
         return new WebhookData($webhookData);
     }
 
+    /**
+     * Получает данные ошибки и рассылает пользователям телеграмм
+     *
+     * @param array $data
+     * @return void
+     * @throws GuzzleException
+     */
     public function handle(array $data)
     {
         $dto = $this->parseData($data);
-        $sentry_users = $this->sentryApi->getListAnOrganizationUsers($dto->project_id);
-        $users_ids = implode(',', array_map(fn($item) => $item['id'], $sentry_users));
+        $sentry_users = $this->sentryApi->getUsersByProjectId($dto->project_id);
+        $users_ids = array_map(fn($item) => $item['id'], $sentry_users);
 
-        $users = $this->userRepository->getUsers("where sentry_id in ({$users_ids})");
+        $users = $this->userRepository->getUsersBySentryIds($users_ids);
         $message = "{$dto->title}\n{$dto->event_web_url}";
 
         foreach ($users as $user){

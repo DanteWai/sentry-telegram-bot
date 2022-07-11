@@ -39,6 +39,15 @@ class SqlLiteUserRepository implements UserRepositoryInterface
         return $users;
     }
 
+    /**
+     * @return array|UserDto[]
+     */
+    public function getUsersBySentryIds(array $sentry_ids): array
+    {
+        $sentry_ids = implode(',', $sentry_ids);
+        return $this->getUsers("where sentry_id in ({$sentry_ids})");
+    }
+
     public function createUser(int $telegram_id, int $sentry_id, string $email): UserDto
     {
         $telegram_id = $this->client->insert(

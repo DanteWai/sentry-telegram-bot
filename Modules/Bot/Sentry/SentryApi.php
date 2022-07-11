@@ -11,7 +11,6 @@ class SentryApi
 
     private $secret;
     private Client $client;
-    private string $url;
 
     private $organization_slug;
 
@@ -24,12 +23,13 @@ class SentryApi
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ],
-            'base_uri' => 'https://sentry.io/api/0/'
+            'base_uri' => $_ENV['SENTRY_API_URL']
         ]);
         $this->organization_slug = $_ENV['SENTRY_ORGANIZATION_SLUG'];
     }
 
     /**
+     * Получить информацию о владельце токена
      * @throws GuzzleException
      */
     public function getMe(): array
@@ -40,6 +40,8 @@ class SentryApi
     }
 
     /**
+     * Получить список пользователей организации
+     * Позволяет ограничить пользователей по проекту
      * @throws GuzzleException
      */
     public function getListAnOrganizationUsers(int $project_id = null): array
@@ -58,7 +60,15 @@ class SentryApi
     /**
      * @throws GuzzleException
      */
-    public function getProject($project_slug): array
+    public function getUsersByProjectId(int $project_id): array
+    {
+        return $this->getListAnOrganizationUsers($project_id);
+    }
+
+    /**
+     * @throws GuzzleException
+     */
+    public function getProjectBySlug($project_slug): array
     {
         $response = $this->client->get("projects/{$this->organization_slug}/{$project_slug}/");
 
