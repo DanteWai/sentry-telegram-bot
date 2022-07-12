@@ -58,6 +58,19 @@ class SentryApi
     }
 
     /**
+     * @return array
+     * @throws GuzzleException
+     */
+    public function getOrganizationProjects(): array
+    {
+        $path = "organizations/{$this->organization_slug}/projects/";
+
+        $response = $this->client->get($path);
+
+        return $this->responseHandler($response);
+    }
+
+    /**
      * @throws GuzzleException
      */
     public function getUsersByProjectId(int $project_id): array

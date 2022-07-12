@@ -9,10 +9,13 @@ use Modules\Bot\Contracts\WebhookHandlerInterface;
 use Modules\Bot\Sentry\TelegramBot;
 use Modules\Bot\Sentry\TelegramMessageHandler;
 use Modules\Bot\Sentry\WebhookHandler;
+use Modules\Projects\Contracts\SentryProjectRepository;
+use Modules\Projects\Repositories\RedisProjectsRepository;
 use Modules\Users\Contracts\UserCodesRepository;
 use Modules\Users\Contracts\UserRepositoryInterface;
 use Modules\Users\Repositories\RedisUserCodesRepository;
 use Modules\Users\Repositories\SqlLiteUserRepository;
+use Predis\ClientInterface;
 use ReflectionException;
 
 class DIContainer
@@ -26,6 +29,8 @@ class DIContainer
         $this->binds[TelegramBot::class] = fn() => new TelegramBot(new Client(), $_ENV['TELEGRAM_SENTRY_BOT_TOKEN']);
         $this->binds[UserRepositoryInterface::class] = fn() => new SqlLiteUserRepository(new DatabaseSQLLite($_ENV['DATABASE_NAME']));
         $this->binds[UserCodesRepository::class] = RedisUserCodesRepository::class;
+        $this->binds[SentryProjectRepository::class] = RedisProjectsRepository::class;
+        $this->binds[ClientInterface::class] = \Predis\Client::class;
     }
 
     public function bind(string $type, string $subtype){
@@ -55,6 +60,8 @@ class DIContainer
                     $deps[] = $name();
                 } else if(class_exists($name)){
                     $deps[] = $this->resolveClass($name);
+                }  else if($attr->isOptional()){
+                    $deps[] = $attr->getDefaultValue();
                 } else {
                     $deps[] = $name;
                 }

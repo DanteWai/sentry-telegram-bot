@@ -16,4 +16,6 @@ class WebhookData extends DTO
     public string $issue_api_url;
     public string $event_web_url;
     public string $event_api_url;
+
+    public string $environment;
 }

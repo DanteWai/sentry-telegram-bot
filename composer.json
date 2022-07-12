@@ -8,7 +8,6 @@
         "vlucas/phpdotenv": "^5.4",
         "guzzlehttp/guzzle": "7.0",
         "container-interop/container-interop": "^1.2",
-        "php-di/php-di": "^6.4",
         "ext-sqlite3": "*",
       "ext-json": "*",
         "phpmailer/phpmailer": "^6.6",
