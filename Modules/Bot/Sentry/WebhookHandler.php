@@ -48,7 +48,6 @@ class WebhookHandler implements WebhookHandlerInterface
             'event_web_url' => $data['web_url'],
             'event_api_url' => $data['url'],
 
-            'project_name' => $data['environment'],
             'environment' => $data['environment']
         ];
 
