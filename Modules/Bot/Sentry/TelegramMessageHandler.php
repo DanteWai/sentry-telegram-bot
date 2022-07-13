@@ -2,15 +2,10 @@
 
 namespace Modules\Bot\Sentry;
 
-use Database\DatabaseSQLLite;
-use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Modules\Bot\Contracts\TelegramMessageHandlerInterface;
 use Modules\Bot\Sentry\TelegramMessageHandlers\CallbackHandler;
 use Modules\Bot\Sentry\TelegramMessageHandlers\MessageHandler;
-use Modules\Users\Contracts\UserRepositoryInterface;
-use Modules\Users\Repositories\RedisUserCodesRepository;
-use Modules\Users\Repositories\SqlLiteUserRepository;
 use PHPMailer\PHPMailer\Exception;
 
 class TelegramMessageHandler implements TelegramMessageHandlerInterface

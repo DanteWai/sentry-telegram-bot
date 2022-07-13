@@ -4,7 +4,7 @@ namespace Modules\Users\Contracts;
 
 use Modules\Users\UserDto;
 
-interface UserRepositoryInterface
+interface UserRepository
 {
     public function getUser(int $telegram_id): ?UserDto;
 

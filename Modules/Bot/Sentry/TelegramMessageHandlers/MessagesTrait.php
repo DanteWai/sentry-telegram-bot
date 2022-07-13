@@ -11,6 +11,11 @@ trait MessagesTrait
 
     public function getInputCodeMessage(): string
     {
-        return 'Введите код из сообщения'
-;    }
+        return 'Введите код из сообщения';
+    }
+
+    public function getAuthByKeyMessage(): string
+    {
+        return 'Введите ключ авторизации';
+    }
 }

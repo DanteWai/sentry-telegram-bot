@@ -6,9 +6,9 @@ use SQLite3;
 
 class DatabaseSQLLite extends Database
 {
-    public function __construct(string $db_name)
+    public function __construct()
     {
-        parent::__construct($db_name);
+        parent::__construct($_ENV['DATABASE_NAME']);
         $this->client = new SQLite3($_ENV['DATABASE_NAME']);
     }
 

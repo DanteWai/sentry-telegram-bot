@@ -4,7 +4,6 @@
 namespace Modules\Users\Repositories;
 
 use Modules\Users\Contracts\UserCodesRepository;
-use Predis\Client;
 use System\RedisRepository;
 
 class RedisUserCodesRepository extends RedisRepository  implements UserCodesRepository

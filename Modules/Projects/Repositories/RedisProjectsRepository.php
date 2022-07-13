@@ -40,7 +40,8 @@ class RedisProjectsRepository extends RedisRepository implements SentryProjectRe
             }
         }
 
-        return $value ? new SentryProjectDto(json_decode($value, true)) : null;
+
+        return $value ? new SentryProjectDto($value) : null;
     }
 
     public function addProjects(array $projects)

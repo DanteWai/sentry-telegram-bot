@@ -6,26 +6,30 @@ namespace Modules\Bot\Sentry;
 use GuzzleHttp\Exception\GuzzleException;
 use Modules\Bot\Contracts\WebhookHandlerInterface;
 use Modules\Projects\SentryProjectService;
-use Modules\Users\Contracts\UserRepositoryInterface;
+use Modules\Users\Contracts\UserRepository;
+use Modules\Users\Contracts\UserWithKeysRepository;
 
 class WebhookHandler implements WebhookHandlerInterface
 {
     private SentryApi $sentryApi;
-    private UserRepositoryInterface $userRepository;
+    private UserRepository $userRepository;
     private TelegramBot $telegramApi;
     private SentryProjectService $projectService;
+    private UserWithKeysRepository $userWithKeysRepository;
 
     public function __construct(
-        SentryApi $sentryApi,
-        UserRepositoryInterface $userRepository,
-        TelegramBot $telegramBot,
-        SentryProjectService $projectService
+        SentryApi            $sentryApi,
+        UserRepository       $userRepository,
+        TelegramBot          $telegramBot,
+        SentryProjectService $projectService,
+        UserWithKeysRepository $userWithKeysRepository
     )
     {
         $this->sentryApi = $sentryApi;
         $this->userRepository = $userRepository;
         $this->telegramApi = $telegramBot;
         $this->projectService = $projectService;
+        $this->userWithKeysRepository = $userWithKeysRepository;
     }
 
     /**
@@ -68,8 +72,18 @@ class WebhookHandler implements WebhookHandlerInterface
         $project = $this->projectService->getProjectById($dto->project_id);
 
         $sentry_users = $this->sentryApi->getUsersByProjectId($dto->project_id);
-        $users_ids = array_map(fn($item) => $item['id'], $sentry_users);
-        $users = $this->userRepository->getUsersBySentryIds($users_ids);
+        $users_ids_for_search = array_map(fn($item) => $item['id'], $sentry_users);
+
+
+        $local_users = $this->userRepository->getUsersBySentryIds($users_ids_for_search);
+        $users_with_keys = $this->userWithKeysRepository->getUsersByProjectId($dto->project_id);
+
+        $users_ids_for_send_messages = array_unique(
+            array_merge(
+                array_map(fn($item) => $item->telegram_id, $local_users),
+                array_map(fn($item) => $item->telegram_id, $users_with_keys),
+            )
+        );
 
         $message = "Environment: {$dto->environment}\n{$dto->title}\n{$dto->event_web_url}";
 
@@ -77,8 +91,9 @@ class WebhookHandler implements WebhookHandlerInterface
             $message = "Project name: {$project->title}\n${message}";
         }
 
-        foreach ($users as $user){
-            $this->telegramApi->sendMessage($user->telegram_id, $message);
+        foreach ($users_ids_for_send_messages as $telegram_id){
+            $this->telegramApi->sendMessage($telegram_id, $message);
         }
+
     }
 }

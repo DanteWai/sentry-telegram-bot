@@ -3,10 +3,10 @@
 namespace Modules\Users\Repositories;
 
 use Database\Database;
-use Modules\Users\Contracts\UserRepositoryInterface;
+use Modules\Users\Contracts\UserRepository;
 use Modules\Users\UserDto;
 
-class SqlLiteUserRepository implements UserRepositoryInterface
+class SqlLiteUserRepository implements UserRepository
 {
 
     private Database $client;
