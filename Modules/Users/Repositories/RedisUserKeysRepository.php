@@ -16,7 +16,7 @@ class RedisUserKeysRepository extends RedisRepository implements UserKeysReposit
 
     public function deleteKey(string $key)
     {
-        $this->redis->del($key);
+        $this->redis->del($this->prefix . $key);
     }
 
     public function getProjectIdByKey(string $key): ?string

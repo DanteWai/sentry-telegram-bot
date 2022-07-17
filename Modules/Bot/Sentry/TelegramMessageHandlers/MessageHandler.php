@@ -149,6 +149,7 @@ class MessageHandler
     {
         $chat_id = $data['reply_to_message']['chat']['id'];
         $chat = $data['reply_to_message']['chat'];
+        $key = $data['text'];
 
         $project_id = $this->userKeysRepository->getProjectIdByKey($data['text']);
 
@@ -161,6 +162,7 @@ class MessageHandler
         if ($project_id) {
             $this->userWithKeysRepository->createUser($chat_id, $project_id, $name);
             $project = $this->projectService->getProjectById($project_id);
+            $this->userKeysRepository->deleteKey($key);
             $this->bot->sendMessage($chat_id, 'Вы успешно авторизованы для проекта '. $project->title ?? '');
         } else {
             $this->bot->sendMessage($chat_id, 'Авторизация не удалась');
