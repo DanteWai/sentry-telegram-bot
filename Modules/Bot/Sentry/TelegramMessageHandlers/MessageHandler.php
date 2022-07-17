@@ -174,29 +174,35 @@ class MessageHandler
      */
     protected function replyToEmailMessageHandler(array $data)
     {
-
         $chat_id = $data['reply_to_message']['chat']['id'];
-
         $email = $data['text'];
         $users = $this->sentryApi->getListAnOrganizationUsers();
-        [$user] = array_filter($users, fn($user) => $user['email'] === $email);
+        [$sentryUser] = array_filter($users, fn($user) => $user['email'] === $email);
+        $localUser = $this->userRepository->getUserByEmail($email);
 
-        if ($user) {
+        if ($sentryUser && !$localUser) {
             $code = Uuid::uuid4()->toString();
             $message = 'Auth code: ' . $code;
-            $sentry_id = $user['id'];
+            $sentry_id = $sentryUser['id'];
 
             $this->userCodesRepository->setCode($chat_id, $code, $email, $sentry_id);
             $mail = new Mail($email, $message, 'Auth code');
             $mail->send();
+
             $this->bot->sendMessage($chat_id, $this->getInputCodeMessage(), [
                 'force_reply' => true
             ]);
-        } else {
-            $this->bot->sendMessage($chat_id, 'Авторизация не удалась');
         }
 
+        if(!$sentryUser){
+            $message = 'Не найден подходящий пользователь в sentry';
+        }
 
+        if($localUser){
+            $message = 'Пользователь с таким email уже существует';
+        }
+
+        $this->bot->sendMessage($chat_id, $message ?? 'Авторизация не удалась');
     }
 
     /**

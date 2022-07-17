@@ -21,7 +21,13 @@ class SqlLiteUserRepository implements UserRepository
     public function getUser(int $telegram_id): ?UserDto
     {
         [$user] = $this->client->select(['*'], $this->table, "where telegram_id = {$telegram_id} limit 1");
-        return $user ? new UserDto($user) : $user;
+        return $user ? new UserDto($user) : null;
+    }
+
+    public function getUserByEmail(string $email): ?UserDto
+    {
+        [$user] = $this->client->select(['*'], $this->table, "where email = '{$email}' limit 1");
+        return $user ? new UserDto($user) : null;
     }
 
     /**

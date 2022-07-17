@@ -8,6 +8,8 @@ interface UserRepository
 {
     public function getUser(int $telegram_id): ?UserDto;
 
+    public function getUserByEmail(string $email): ?UserDto;
+
     /** @return UserDto[] */
     public function getUsers(): array;
 
