@@ -16,7 +16,7 @@ use System\Mail;
 
 class MessageHandler
 {
-    use MessagesTrait;
+    use MessagesTrait, ButtonsTrait;
 
 
     private TelegramBot $bot;
@@ -79,15 +79,12 @@ class MessageHandler
         $admin_ids = str_replace(' ', '', $_ENV['TELEGRAM_SUPER_ADMIN_CHAT_ID'] ?? '');
         $admin_ids = explode(',', $admin_ids);
 
-        if (in_array($chat_id, $admin_ids)) {
-            $projects = $this->projectService->getProjects();
-            $project_buttons = array_map(function ($item) {
-                return [
-                    'text' => $item['title'],
-                    'callback_data' => 'cb_key_for_' . $item['id']
-                ];
-            }, $projects);
+        $this->userKeysRepository->startCreatingNewKey($chat_id);
 
+        if (in_array($chat_id, $admin_ids)) {
+            $project_buttons = $this->getButtonsForProjects(
+                $this->projectService->getProjects()
+            );
 
             $inline_keyboard = [$project_buttons];
             $buttons = ['inline_keyboard' => $inline_keyboard];
@@ -151,19 +148,24 @@ class MessageHandler
         $chat = $data['reply_to_message']['chat'];
         $key = $data['text'];
 
-        $project_id = $this->userKeysRepository->getProjectIdByKey($data['text']);
+        $project_ids = $this->userKeysRepository->getProjectIdsByKey($data['text']);
 
         $first_name = $chat['first_name'] ?? '';
         $last_name = $chat['last_name'] ?? '';
         $username = $chat['username'] ?? '';
         $name = str_replace('  ', ' ', "{$username} {$first_name} {$last_name}");
 
+        $isUserExist = $this->userWithKeysRepository->isUserExistByTelegramId($chat_id);
 
-        if ($project_id) {
-            $this->userWithKeysRepository->createUser($chat_id, $project_id, $name);
-            $project = $this->projectService->getProjectById($project_id);
+        if($isUserExist){
+            $this->bot->sendMessage($chat_id, 'К этому аккаунту уже привязан ключ');
+            return;
+        }
+
+        if (!empty($project_ids)) {
+            $this->userWithKeysRepository->createUser($chat_id, $project_ids, $name);
             $this->userKeysRepository->deleteKey($key);
-            $this->bot->sendMessage($chat_id, 'Вы успешно авторизованы для проекта '. $project->title ?? '');
+            $this->bot->sendMessage($chat_id, 'Вы успешно авторизованы');
         } else {
             $this->bot->sendMessage($chat_id, 'Авторизация не удалась');
         }

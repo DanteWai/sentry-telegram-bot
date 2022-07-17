@@ -10,7 +10,7 @@ use Ramsey\Uuid\Uuid;
 
 class CallbackHandler
 {
-    use MessagesTrait;
+    use MessagesTrait, ButtonsTrait;
 
     private TelegramBot $bot;
     private SentryProjectService $projectService;
@@ -43,6 +43,8 @@ class CallbackHandler
         } elseif ($text === 'cb_key_auth') {
             $this->authByKeyHandler($chat_id, $callback_id);
         } elseif (substr($text, 0, 11) === "cb_key_for_") {
+            $this->callbackAddProjectToCreatingKey($chat_id, $callback_id, $text);
+        } elseif ($text === 'cb_key_generate') {
             $this->callbackCreateKeyForProject($chat_id, $callback_id, $text);
         }
     }
@@ -84,7 +86,7 @@ class CallbackHandler
      * @return void
      * @throws GuzzleException
      */
-    protected function callbackCreateKeyForProject($chat_id, $callback_id, $text)
+    protected function callbackAddProjectToCreatingKey($chat_id, $callback_id, $text)
     {
         $this->bot->answerCallbackQuery($callback_id);
         $callback_items = explode('_', $text);
@@ -92,12 +94,56 @@ class CallbackHandler
         $project = $this->projectService->getProjectById($project_id);
 
         if ($project) {
-            $key = Uuid::uuid4()->toString();
-            $this->userKeysRepository->addKey($key, $project_id);
+            $this->userKeysRepository->addProjectToCreatingKey($chat_id, $project_id);
 
-            $this->bot->sendMessage($chat_id, "Ключ: {$key}\nДействителен 1 час");
+            $buttons = $this->getCallbackAddProjectToCreatingKeyButtons($chat_id);
+            $this->bot->sendMessage($chat_id, "Выберете следующий проект или сгенерируйте ключ", $buttons);
         } else {
             $this->bot->sendMessage($chat_id, 'Проект не найден');
         }
+    }
+
+    /**
+     * @param $chat_id
+     * @return array[]
+     * @throws GuzzleException
+     */
+    protected function getCallbackAddProjectToCreatingKeyButtons($chat_id): array
+    {
+        $project_buttons = $this->getButtonsForProjects(
+            $this->projectService->getProjects(),
+            $this->userKeysRepository->getProjectsForCreatingKey($chat_id)
+        );
+
+        $inline_keyboard = [$project_buttons, [
+            [
+                'text' => 'Сгенерировать',
+                'callback_data' => 'cb_key_generate'
+            ]
+        ]];
+
+        return ['inline_keyboard' => $inline_keyboard];
+    }
+
+    /**
+     * @param $chat_id
+     * @param $callback_id
+     * @param $text
+     * @return void
+     * @throws GuzzleException
+     */
+    protected function callbackCreateKeyForProject($chat_id, $callback_id, $text)
+    {
+        $this->bot->answerCallbackQuery($callback_id);
+        $key = Uuid::uuid4()->toString();
+        $project_ids = implode(',',
+            array_unique(
+                $this->userKeysRepository->getProjectsForCreatingKey($chat_id)
+            )
+        );
+
+        $this->userKeysRepository->addKey($key, $project_ids);
+        $this->bot->sendMessage($chat_id, "Ключ: {$key}\nДействителен 1 час");
+        $this->userKeysRepository->startCreatingNewKey($chat_id);
     }
 }

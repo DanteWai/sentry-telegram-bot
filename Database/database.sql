@@ -7,12 +7,21 @@ CREATE TABLE sentry_users
     sentry_id INTEGER UNIQUE NOT NULL
 );
 
-DROP TABLE IF EXISTS `users_with_keys`;
+DROP TABLE IF EXISTS `project_user_with_keys`;
 
-CREATE TABLE users_with_keys
+CREATE TABLE project_user_with_keys
+(
+    project_id INTEGER NOT NULL,
+    user_with_key_id INTEGER NOT NULL,
+
+    FOREIGN KEY (user_with_key_id) REFERENCES users_with_key(telegram_id) ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS `users_with_key`;
+
+CREATE TABLE users_with_key
 (
     telegram_id INTEGER PRIMARY KEY NOT NULL,
-    project_id INTEGER NOT NULL,
     name   TEXT NOT NULL,
-    CONSTRAINT AK_telegram_id_project_id UNIQUE(telegram_id, project_id)
+    CONSTRAINT AK_telegram_id_project_id UNIQUE(telegram_id)
 );

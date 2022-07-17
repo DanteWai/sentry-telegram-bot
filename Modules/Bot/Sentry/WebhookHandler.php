@@ -75,15 +75,9 @@ class WebhookHandler implements WebhookHandlerInterface
         $users_ids_for_search = array_map(fn($item) => $item['id'], $sentry_users);
 
 
-        $local_users = $this->userRepository->getUsersBySentryIds($users_ids_for_search);
-        $users_with_keys = $this->userWithKeysRepository->getUsersByProjectId($dto->project_id);
+        $sentry_users_ids = array_map(fn($item) => $item->telegram_id, $this->userRepository->getUsersBySentryIds($users_ids_for_search));
+        $keys_users_ids = $this->userWithKeysRepository->getUsersIdByProject($dto->project_id);
 
-        $users_ids_for_send_messages = array_unique(
-            array_merge(
-                array_map(fn($item) => $item->telegram_id, $local_users),
-                array_map(fn($item) => $item->telegram_id, $users_with_keys),
-            )
-        );
 
         $message = "Environment: {$dto->environment}\n{$dto->title}\n{$dto->event_web_url}";
 
@@ -91,9 +85,20 @@ class WebhookHandler implements WebhookHandlerInterface
             $message = "Project name: {$project->title}\n${message}";
         }
 
-        foreach ($users_ids_for_send_messages as $telegram_id){
+        $this->sentryUsersMessage($sentry_users_ids, $message);
+
+        if($dto->environment === 'prod' || $dto->environment === 'production'){
+            $this->keysUsersMessage($keys_users_ids, $message);
+        }
+    }
+
+    protected function sentryUsersMessage(array $user_ids, $message){
+        foreach ($user_ids as $telegram_id){
             $this->telegramApi->sendMessage($telegram_id, $message);
         }
+    }
 
+    protected function keysUsersMessage(array $user_ids, $message){
+        $this->sentryUsersMessage($user_ids, $message);
     }
 }
