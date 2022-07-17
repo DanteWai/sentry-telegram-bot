@@ -62,6 +62,8 @@ class MessageHandler
             $this->messageStartHandler($chat_id);
         } elseif ($text === '/create_auth_key_for_project') {
             $this->messageCreateKeyHandler($chat_id);
+        } elseif ($text === '/delete_auth_key') {
+            $this->messageDeleteKeyHandler($chat_id);
         } elseif (isset($data['reply_to_message'])) {
             $this->replyToMessageHandler($data);
         }
@@ -76,12 +78,9 @@ class MessageHandler
      */
     public function messageCreateKeyHandler($chat_id)
     {
-        $admin_ids = str_replace(' ', '', $_ENV['TELEGRAM_SUPER_ADMIN_CHAT_ID'] ?? '');
-        $admin_ids = explode(',', $admin_ids);
+        if ($this->checkIsChatWithAdmin($chat_id)) {
+            $this->userKeysRepository->startCreatingNewKey($chat_id);
 
-        $this->userKeysRepository->startCreatingNewKey($chat_id);
-
-        if (in_array($chat_id, $admin_ids)) {
             $project_buttons = $this->getButtonsForProjects(
                 $this->projectService->getProjects()
             );
@@ -93,6 +92,37 @@ class MessageHandler
         } else {
             $this->bot->sendMessage($chat_id, 'Вы не админ');
         }
+    }
+
+    /**
+     * @param $chat_id
+     * @return void
+     * @throws GuzzleException
+     */
+    public function messageDeleteKeyHandler($chat_id){
+        if ($this->checkIsChatWithAdmin($chat_id)) {
+            $keys_buttons = array_map(function ($item) {
+                return [
+                    'text' => $item['telegram_id'] . ' ' . $item['name'],
+                    'callback_data' => 'cb_delete_key_' . $item['telegram_id']
+                ];
+            }, $this->userWithKeysRepository->getUsersWithKey());
+
+            $inline_keyboard = [$keys_buttons];
+            $buttons = ['inline_keyboard' => $inline_keyboard];
+
+            $this->bot->sendMessage($chat_id, 'Выберете ключ который вы хотите удалить', $buttons);
+        } else {
+            $this->bot->sendMessage($chat_id, 'Вы не админ');
+        }
+    }
+
+    protected function checkIsChatWithAdmin($chat_id): bool
+    {
+        $admin_ids = str_replace(' ', '', $_ENV['TELEGRAM_SUPER_ADMIN_CHAT_ID'] ?? '');
+        $admin_ids = explode(',', $admin_ids);
+
+        return in_array($chat_id, $admin_ids);
     }
 
     /**

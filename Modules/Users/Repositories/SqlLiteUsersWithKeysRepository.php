@@ -21,16 +21,9 @@ class SqlLiteUsersWithKeysRepository implements UserWithKeysRepository
     /**
      * @return array|UserDto[]
      */
-    public function getUsers($condition = ''): array
+    public function getUsersWithKey(): array
     {
-        $users = [];
-        $data = $this->client->select(['*'], $this->table, $condition);
-
-        foreach ($data as $user) {
-            $users[] = new UserDto($user);
-        }
-
-        return $users;
+        return $this->client->select(['*'], $this->table);
     }
 
     public function getUsersIdByProject(string $project_id): array
@@ -60,8 +53,11 @@ class SqlLiteUsersWithKeysRepository implements UserWithKeysRepository
         return (bool)$user;
     }
 
-    public function getUsersByProjectId(int $project_id): array
+    public function deleteUser(int $telegram_id)
     {
-        return $this->getUsers("where project_id = {$project_id}");
+        $this->client->delete($this->table, 'where telegram_id = ' . $telegram_id);
+        $this->client->delete($this->pivot_project_table, 'where user_with_key_id = ' . $telegram_id);
     }
+
+
 }

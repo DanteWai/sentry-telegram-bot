@@ -6,6 +6,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use Modules\Bot\Sentry\TelegramBot;
 use Modules\Projects\SentryProjectService;
 use Modules\Users\Contracts\UserKeysRepository;
+use Modules\Users\Contracts\UserWithKeysRepository;
 use Ramsey\Uuid\Uuid;
 
 class CallbackHandler
@@ -15,16 +16,19 @@ class CallbackHandler
     private TelegramBot $bot;
     private SentryProjectService $projectService;
     private UserKeysRepository $userKeysRepository;
+    private UserWithKeysRepository $userWithKeysRepository;
 
     public function __construct(
         TelegramBot          $bot,
         SentryProjectService $projectService,
-        UserKeysRepository   $userKeysRepository
+        UserKeysRepository   $userKeysRepository,
+        UserWithKeysRepository   $userWithKeysRepository
     )
     {
         $this->bot = $bot;
         $this->projectService = $projectService;
         $this->userKeysRepository = $userKeysRepository;
+        $this->userWithKeysRepository = $userWithKeysRepository;
     }
 
     /**
@@ -44,6 +48,8 @@ class CallbackHandler
             $this->authByKeyHandler($chat_id, $callback_id);
         } elseif (substr($text, 0, 11) === "cb_key_for_") {
             $this->callbackAddProjectToCreatingKey($chat_id, $callback_id, $text);
+        } elseif (substr($text, 0, 14) === "cb_delete_key_") {
+            $this->callbackDeleteKey($chat_id, $callback_id, $text);
         } elseif ($text === 'cb_key_generate') {
             $this->callbackCreateKeyForProject($chat_id, $callback_id, $text);
         }
@@ -101,6 +107,23 @@ class CallbackHandler
         } else {
             $this->bot->sendMessage($chat_id, 'Проект не найден');
         }
+    }
+
+    /**
+     * @param $chat_id
+     * @param $callback_id
+     * @param $text
+     * @return void
+     * @throws GuzzleException
+     */
+    protected function callbackDeleteKey($chat_id, $callback_id, $text){
+        $this->bot->answerCallbackQuery($callback_id);
+        $callback_items = explode('_', $text);
+        $telegram_id = array_pop($callback_items);
+
+        $this->userWithKeysRepository->deleteUser($telegram_id);
+
+        $this->bot->sendMessage($chat_id, 'Ключ удален');
     }
 
     /**
