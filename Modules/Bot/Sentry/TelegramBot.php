@@ -42,6 +42,7 @@ class TelegramBot extends TelegramBotAbstract
      * @param $chat_id
      * @param string $message
      * @param array $buttons
+     * @param bool $silent
      * @return array
      * @throws GuzzleException
      */
@@ -49,12 +50,14 @@ class TelegramBot extends TelegramBotAbstract
         $chat_id,
         string $message,
         array $buttons = [],
+        bool $silent = false
     ): array
 
     {
         $data = [
             'chat_id' => $chat_id,
             'text' => $message,
+            'disable_notification' => $silent
         ];
 
         if (!empty($buttons)) {

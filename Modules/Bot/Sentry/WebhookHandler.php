@@ -68,6 +68,7 @@ class WebhookHandler implements WebhookHandlerInterface
     public function handle(array $data)
     {
         $dto = $this->parseData($data);
+        $isProd = $dto->environment === 'prod' || $dto->environment === 'production';
 
         $project = $this->projectService->getProjectById($dto->project_id);
 
@@ -85,20 +86,19 @@ class WebhookHandler implements WebhookHandlerInterface
             $message = "Project name: {$project->title}\n${message}";
         }
 
-        $this->sentryUsersMessage($sentry_users_ids, $message);
-
-        if($dto->environment === 'prod' || $dto->environment === 'production'){
-            $this->keysUsersMessage($keys_users_ids, $message);
-        }
+        $this->sentryUsersMessage($sentry_users_ids, $message, $isProd);
+        $this->keysUsersMessage($keys_users_ids, $message, $isProd);
     }
 
-    protected function sentryUsersMessage(array $user_ids, $message){
+    protected function sentryUsersMessage(array $user_ids, string $message, $isProd = false){
         foreach ($user_ids as $telegram_id){
-            $this->telegramApi->sendMessage($telegram_id, $message);
+            $this->telegramApi->sendMessage($telegram_id, $message, [], !$isProd);
         }
     }
 
-    protected function keysUsersMessage(array $user_ids, $message){
-        $this->sentryUsersMessage($user_ids, $message);
+    protected function keysUsersMessage(array $user_ids, string $message, $isProd = false){
+        if($isProd){
+            $this->sentryUsersMessage($user_ids, $message, $isProd);
+        }
     }
 }

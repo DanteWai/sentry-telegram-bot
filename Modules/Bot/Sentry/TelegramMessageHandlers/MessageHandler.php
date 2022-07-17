@@ -99,7 +99,8 @@ class MessageHandler
      * @return void
      * @throws GuzzleException
      */
-    public function messageDeleteKeyHandler($chat_id){
+    public function messageDeleteKeyHandler($chat_id)
+    {
         if ($this->checkIsChatWithAdmin($chat_id)) {
             $keys_buttons = array_map(function ($item) {
                 return [
@@ -187,7 +188,7 @@ class MessageHandler
 
         $isUserExist = $this->userWithKeysRepository->isUserExistByTelegramId($chat_id);
 
-        if($isUserExist){
+        if ($isUserExist) {
             $this->bot->sendMessage($chat_id, 'К этому аккаунту уже привязан ключ');
             return;
         }
@@ -216,27 +217,27 @@ class MessageHandler
 
         if ($sentryUser && !$localUser) {
             $code = Uuid::uuid4()->toString();
-            $message = 'Auth code: ' . $code;
+            $email_message = 'Auth code: ' . $code;
             $sentry_id = $sentryUser['id'];
 
             $this->userCodesRepository->setCode($chat_id, $code, $email, $sentry_id);
-            $mail = new Mail($email, $message, 'Auth code');
+            $mail = new Mail($email, $email_message, 'Auth code');
             $mail->send();
 
             $this->bot->sendMessage($chat_id, $this->getInputCodeMessage(), [
                 'force_reply' => true
             ]);
-        }
+        } else {
+            if (!$sentryUser) {
+                $message = 'Не найден подходящий пользователь в sentry';
+            }
 
-        if(!$sentryUser){
-            $message = 'Не найден подходящий пользователь в sentry';
-        }
+            if ($localUser) {
+                $message = 'Пользователь с таким email уже существует';
+            }
 
-        if($localUser){
-            $message = 'Пользователь с таким email уже существует';
+            $this->bot->sendMessage($chat_id, $message ?? 'Авторизация не удалась');
         }
-
-        $this->bot->sendMessage($chat_id, $message ?? 'Авторизация не удалась');
     }
 
     /**
